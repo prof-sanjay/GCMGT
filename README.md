@@ -118,7 +118,7 @@ tests work across the two packages.
 `notebooks/gcmgt_kaggle.ipynb` runs the whole pipeline on Kaggle in the style of the HGP notebook: environment check, code and data
 discovery (the code from `REPO_URL` or from a Kaggle dataset holding this folder; the prepared `gba_2021.npz` that the HGP runs used,
 or the raw files), tests, the cached Granger prior, an optional timing test, one run per seed, and a validation table that also prints
-the recipe actually used. Test metrics stay hidden until `SHOW_TEST = True`. `DATASET` selects LargeST-GBA or PEMS-BAY. The training
+the recipe actually used. Test metrics stay hidden until `SHOW_TEST = True`. `DATASET` selects PEMS-BAY (default; `pems-bay.h5` + `adj_mx_bay.pkl`, 325 sensors, 70 / 10 / 20 split) or LargeST-GBA. The training
 recipe is not set in the notebook; it comes from `gcmgt/config.py`.
 
 ## Protocol
