@@ -147,7 +147,7 @@ class Trainer:
         optimizer = opt_cls(self.model.parameters(), cfg.learning_rate, weight_decay=cfg.weight_decay)
         steps_per_epoch = math.ceil(min(cfg.epoch_windows or 10**12, len(self.datasets["train"])) / cfg.batch_size)
         scheduler = self._schedule(optimizer, steps_per_epoch)
-        best, bad, t0, epoch = {"epoch": 0, "mae": float("inf")}, 0, time.time(), 0
+        best, bad, t0, epoch, stop = {"epoch": 0, "mae": float("inf")}, 0, time.time(), 0, "epochs"
         self._json("config.json", {"train": asdict(cfg), "data": asdict(self.dc), "granger": asdict(self.gc),
                                    "prior_edges": int((self.prior["A"] > 0).sum()), "prior_cache": self.prior["cache"],
                                    "parameters": count_parameters(self.model), "device": str(self.device)})
@@ -175,6 +175,11 @@ class Trainer:
                 print(f"epoch {epoch:3d}  loss {train_loss:.4f}  val MAE {val['mean']['mae']:.3f}  {row['seconds']:.0f}s"
                       f"{'  *' if improved else ''}", flush=True)
                 if bad >= cfg.patience:
+                    stop = "patience"
+                    break
+                if cfg.time_limit_hours and (time.time() - t0) + row["seconds"] > cfg.time_limit_hours * 3600:
+                    stop = "time_limit"
+                    print(f"time limit of {cfg.time_limit_hours:.2f} h reached after epoch {epoch}: stopping and testing the best checkpoint", flush=True)
                     break
 
         self.model.load_state_dict(torch.load(self.run_dir / "checkpoints" / "best.pt", map_location=self.device))
@@ -182,7 +187,7 @@ class Trainer:
         test = horizon_metrics(targets, preds, self.dc.mape_min_flow)
         self._save_predictions(targets, preds, starts)
         results = {"run": self.run_dir.name, "parameters": count_parameters(self.model), "best_epoch": best["epoch"],
-                   "epochs": epoch, "validation": best["val"], "test": test,
+                   "epochs": epoch, "stop_reason": stop, "validation": best["val"], "test": test,
                    "training_seconds": time.time() - t0, "device": str(self.device)}
         self._json("results.json", results)
         print("test  " + "  ".join(f"h{h}: RMSE {test[h]['rmse']:.3f} MAE {test[h]['mae']:.3f}" for h in self.dc.horizons))

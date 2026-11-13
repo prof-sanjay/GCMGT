@@ -39,6 +39,7 @@ def main():
     ap.add_argument("--dropout", type=float, default=ModelConfig.dropout)
     ap.add_argument("--granger-windows", type=int, default=GrangerConfig.windows, help="day-long windows combined into the prior")
     ap.add_argument("--top-k", type=int, default=GrangerConfig.top_k)
+    ap.add_argument("--time-limit-hours", type=float, default=None, help="stop training before an epoch that would exceed this, then test the best checkpoint")
     ap.add_argument("--max-windows", type=int, default=None, help="limit windows per split (smoke tests)")
     ap.add_argument("--device", default=None)
     args = ap.parse_args()
@@ -47,7 +48,7 @@ def main():
     dc.horizons = tuple(args.horizons)
     gc = GrangerConfig(windows=args.granger_windows, top_k=args.top_k, out_dir=args.graphs)
     overrides = {k: v for k, v in dict(epochs=args.epochs, batch_size=args.batch_size, micro_batch=args.micro_batch,
-                                       learning_rate=args.lr, loss=args.loss).items() if v is not None}
+                                       learning_rate=args.lr, loss=args.loss, time_limit_hours=args.time_limit_hours).items() if v is not None}
     overrides.update(seed=args.seed, epoch_windows=args.epoch_windows, results_dir=args.results,
                      model=ModelConfig(hidden=args.hidden, layers=args.layers, dropout=args.dropout))
     tc = TrainConfig.paper(**overrides) if args.paper else TrainConfig(**overrides)

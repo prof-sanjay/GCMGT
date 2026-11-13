@@ -75,6 +75,7 @@ class TrainConfig:
     loss: str = "huber"                # "huber" | "mse" | "mae", on standardised flow over the observed targets
     huber_delta: float = 1.0
     epoch_windows: int | None = None   # random training windows per epoch (None = all)
+    time_limit_hours: float | None = None   # stop before an epoch that would exceed this, then test the best checkpoint
     results_dir: str = "results"
     model: ModelConfig = field(default_factory=ModelConfig)
 

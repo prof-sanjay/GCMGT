@@ -106,3 +106,14 @@ def test_loss_parts_sum_to_the_full_batch_loss():
     one = masked_loss_part(torch.tensor([[[0.5]]]), torch.tensor([[[0.0]]]), torch.tensor([[True]]), torch.tensor([1.0]))
     two = masked_loss_part(torch.tensor([[[3.0]]]), torch.tensor([[[0.0]]]), torch.tensor([[True]]), torch.tensor([1.0]))
     assert torch.isclose(one, torch.tensor(0.125)) and torch.isclose(two, torch.tensor(2.5))
+
+
+def test_time_limit_stops_training_and_still_tests(tmp_path):
+    data = tmp_path / "toy.npz"
+    make_dataset(data)
+    run("scripts/train.py", "--data", str(data), "--graphs", str(tmp_path / "graphs"), "--results", str(tmp_path / "results"),
+        "--granger-windows", "2", "--epochs", "30", "--max-windows", "24", "--hidden", "16", "--layers", "1",
+        "--time-limit-hours", "0.000001", "--device", "cpu")
+    r = json.loads((tmp_path / "results" / "gcmgt__seed42" / "results.json").read_text())
+    assert r["stop_reason"] == "time_limit" and r["epochs"] == 1                 # stopped after the first epoch
+    assert np.isfinite(r["test"]["3"]["mae"])                                    # and the test metrics were still produced

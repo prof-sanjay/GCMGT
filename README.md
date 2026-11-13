@@ -115,11 +115,17 @@ tests work across the two packages.
 
 ## Notebook
 
-`notebooks/gcmgt_kaggle.ipynb` runs the whole pipeline on Kaggle in the style of the HGP notebook: environment check, code and data
-discovery (the code from `REPO_URL` or from a Kaggle dataset holding this folder; the prepared `gba_2021.npz` that the HGP runs used,
-or the raw files), tests, the cached Granger prior, an optional timing test, one run per seed, and a validation table that also prints
-the recipe actually used. Test metrics stay hidden until `SHOW_TEST = True`. `DATASET` selects PEMS-BAY (default; `pems-bay.h5` + `adj_mx_bay.pkl`, 325 sensors, 70 / 10 / 20 split) or LargeST-GBA. The training
-recipe is not set in the notebook; it comes from `gcmgt/config.py`.
+`notebooks/gcmgt_kaggle.ipynb` produces the final result in one Kaggle run ("Save & Run All", nothing to change): environment check,
+code and data discovery (the code from `REPO_URL` or from a Kaggle dataset holding this folder; `pems-bay.h5` + `adj_mx_bay.pkl`, or for
+`DATASET = "gba"` the prepared `gba_2021.npz` the HGP runs used), tests, the cached Granger prior, a timing step, seed 42 (`SEEDS` takes more),
+and a results cell with validation and test metrics (plus mean and standard deviation when several seeds are run) and `summary.json` / `summary.csv`.
+`DATASET` selects PEMS-BAY (default; 325 sensors, 70 / 10 / 20 split) or LargeST-GBA. The training recipe is not set in the notebook; it
+comes from `gcmgt/config.py`.
+
+The timing step measures one warm epoch on the GPU. If the seeds of 40 full epochs would not fit in `BUDGET_HOURS` (10.5), it lowers the
+number of random training windows per epoch (`EPOCH_WINDOWS`) to fit, prints that prominently, and records it in each run's
+`config.json`; a seed is also not started if it could not finish inside the 12 h session. On PEMS-BAY with a normal GPU the full protocol is
+expected to fit. The micro-batch (16 on PEMS-BAY, 2 on GBA) only affects speed and memory, because gradient accumulation is exact.
 
 ## Protocol
 
