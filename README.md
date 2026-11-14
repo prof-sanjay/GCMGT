@@ -119,8 +119,9 @@ tests work across the two packages.
 code and data discovery (the code from `REPO_URL` or from a Kaggle dataset holding this folder; `pems-bay.h5` + `adj_mx_bay.pkl`, or for
 `DATASET = "gba"` the prepared `gba_2021.npz` the HGP runs used), tests, the cached Granger prior, a timing step, seed 42 (`SEEDS` takes more),
 and a results cell with validation and test metrics (plus mean and standard deviation when several seeds are run) and `summary.json` / `summary.csv`.
-`DATASET` selects PEMS-BAY (default; 325 sensors, 70 / 10 / 20 split) or LargeST-GBA. The training recipe is not set in the notebook; it
-comes from `gcmgt/config.py`.
+`DATASET` selects PEMS-BAY (default; 325 sensors, 70 / 10 / 20 split) or LargeST-GBA. `RECIPE` selects the training recipe: `"paper"`
+(the paper's own, the notebook default: `--paper`) or `"hgp"` (the HGP recipe for the fair comparison), and `EPOCHS` (default 40) is the
+epoch cap. Results go to `results_<RECIPE>/`, so the two recipes never overwrite each other.
 
 The timing step measures one warm epoch on the GPU. If the seeds of 40 full epochs would not fit in `BUDGET_HOURS` (10.5), it lowers the
 number of random training windows per epoch (`EPOCH_WINDOWS`) to fit, prints that prominently, and records it in each run's
